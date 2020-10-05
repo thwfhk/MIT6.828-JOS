@@ -9,7 +9,7 @@
 static void
 putch(int ch, int *cnt)
 {
-	cputchar(ch);
+	cputchar(ch); // putch使用了在console putchar的函数
 	*cnt++;
 }
 
