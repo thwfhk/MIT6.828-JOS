@@ -79,6 +79,7 @@ getint(va_list *ap, int lflag)
 // Main function to format and print a string.
 void printfmt(void (*putch)(int, void*), void *putdat, const char *fmt, ...);
 
+extern int cga_textcolor;
 void
 vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 {
@@ -92,7 +93,13 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 		while ((ch = *(unsigned char *) fmt++) != '%') {
 			if (ch == '\0')
 				return;
-			putch(ch, putdat);
+			if (ch == '\e') {
+				ch = *(unsigned char *) fmt++;
+				if (ch < '0' || ch > '7') ch = '7';
+				cga_textcolor = (ch -'0') << 8;
+			}
+			else
+				putch(ch, putdat);
 		}
 
 		// Process a %-escape sequence

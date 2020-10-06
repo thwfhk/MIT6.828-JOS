@@ -158,13 +158,15 @@ cga_init(void)
 }
 
 
+int cga_textcolor = 0x700;
 
 static void
 cga_putc(int c)
 {
 	// if no attribute given, then use black on white
 	if (!(c & ~0xFF))
-		c |= 0x0700;
+		// c |= 0x0700;
+		c |= cga_textcolor;
 
 	switch (c & 0xff) {
 	case '\b':
