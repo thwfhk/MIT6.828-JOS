@@ -48,7 +48,7 @@
 #define PGSIZE		4096		// bytes mapped by a page
 #define PGSHIFT		12		// log2(PGSIZE)
 
-#define PTSIZE		(PGSIZE*NPTENTRIES) // bytes mapped by a page directory entry
+#define PTSIZE		(PGSIZE*NPTENTRIES) // bytes mapped by a page directory entry, 2^22
 #define PTSHIFT		22		// log2(PTSIZE)
 
 #define PTXSHIFT	12		// offset of PTX in a linear address
@@ -73,7 +73,7 @@
 #define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)
 
 // Address in page table or page directory entry
-#define PTE_ADDR(pte)	((physaddr_t) (pte) & ~0xFFF)
+#define PTE_ADDR(pte)	((physaddr_t) (pte) & ~0xFFF) //pte的高20位存的是PPN
 
 // Control Register flags
 #define CR0_PE		0x00000001	// Protection Enable

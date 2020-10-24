@@ -23,6 +23,7 @@ i386_init(void)
 	// Initialize the console.
 	// Can't call cprintf until after we do this!
 	cons_init();
+	cprintf("edata: %x, end: %x\n", (long)edata, (long)end);
 
 	cprintf("6828 decimal is %o octal!\n", 6828);
 
