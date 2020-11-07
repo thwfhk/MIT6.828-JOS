@@ -22,6 +22,7 @@ i386_init(void)
 
 	// Initialize the console.
 	// Can't call cprintf until after we do this!
+	// cprintf("hi\n");
 	cons_init();
 	// cprintf("edata: %x, end: %x\n", (long)edata, (long)end);
 

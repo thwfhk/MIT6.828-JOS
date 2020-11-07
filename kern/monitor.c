@@ -10,6 +10,7 @@
 #include <kern/console.h>
 #include <kern/monitor.h>
 #include <kern/kdebug.h>
+#include <kern/pmap.h>
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 
@@ -24,7 +25,13 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
-	{ "backtrace", "Display the stack backtrace", mon_backtrace }
+	{ "backtrace", "Display the stack backtrace", mon_backtrace },
+	{ "showmappings", "Display the physical addresses and permissions of virtual addresses",
+		mon_showmappings },
+	{ "setpermission", "Change the permission of a virtual address",
+		mon_setpermission },
+	{ "dumpcontents", "Display the constents of a range of virtual addresses",
+		mon_dumpcontents }
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -79,6 +86,76 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 		cprintf("\n");
 		ebp = *ebp_ptr;
 	}
+	return 0;
+}
+
+int 
+mon_showmappings(int argc, char **argv, struct Trapframe *tf)
+{
+	if (argc != 3) {
+		cprintf("showmappings error: the number of arguments should be 2.\n");
+		cprintf("Usage: showmappings va_begin va_end\n");
+		return 0;
+	}
+	uint32_t begin = strtol(argv[1], NULL, 0), end = strtol(argv[2], NULL, 0);
+	for (; begin <= end; begin += PGSIZE) {
+		pte_t* pte = pgdir_walk(kern_pgdir, (void *) begin, 0);
+		if (!pte) cprintf("Virtual address %x doesn't exist.\n");
+		else {
+			cprintf("virtual page address:%x\tu/s=%d\tr/w=%d\n", 
+							begin & (~0xFFF),
+							(bool)(*pte & PTE_U),
+							(bool)(*pte & PTE_W));
+		}
+	}
+	return 0;
+}
+
+int
+mon_setpermission(int argc, char **argv, struct Trapframe *tf)
+{
+	if (argc != 4) {
+		cprintf("setpermission error: the number of arguments should be 2.\n");
+		cprintf("Usage: setpermission va [u|w] [0|1]\n");
+		return 0;
+	}
+	uint32_t va = strtol(argv[1], NULL, 0);
+	pte_t *pte = pgdir_walk(kern_pgdir, (void *) va, 0);
+	if (!pte) cprintf("Virtual address %x doesn't exist.\n");
+	else {
+		uint32_t x = argv[3][0] - '0';
+		cprintf("The corresponding virtual page address is %x\n", va & (~0xFFF));
+		cprintf("Old Permissions: u/s=%d r/w=%d\n",
+						(bool)(*pte & PTE_U), (bool)(*pte & PTE_W));
+		if (argv[2][0] == 'u') {
+			if (x == 0) *pte = *pte & ~PTE_U;
+			else *pte = *pte | PTE_U;
+		}
+		else if (argv[2][0] == 'w') {
+			if (x == 0) *pte = *pte & ~PTE_W;
+			else *pte = *pte | PTE_W;
+		}
+		cprintf("New Permissions: u/s=%d r/w=%d\n",
+						(bool)(*pte & PTE_U), (bool)(*pte & PTE_W));
+	}
+	return 0;
+}
+
+int
+mon_dumpcontents(int argc, char **argv, struct Trapframe *tf)
+{
+	if (argc != 3) {
+		cprintf("dumpcontents error: the number of arguments should be 2.\n");
+		cprintf("Usage: dumpcontents va_begin va_end\n");
+		return 0;
+	}
+	uint32_t begin = strtol(argv[1], NULL, 0), end = strtol(argv[2], NULL, 0);
+	for (; begin <= end; begin++) {
+		if (!(begin & 0xf)) cprintf("%x: ", begin);
+		cprintf("%02x ", * (unsigned char*) begin);
+		if (!((begin+1) & 0xf)) cprintf("\n");
+	}
+	cprintf("\n");
 	return 0;
 }
 
