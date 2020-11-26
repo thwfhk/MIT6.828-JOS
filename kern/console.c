@@ -5,6 +5,7 @@
 #include <inc/kbdreg.h>
 #include <inc/string.h>
 #include <inc/assert.h>
+#include <inc/stdio.h> // added by me
 
 #include <kern/console.h>
 
@@ -158,7 +159,8 @@ cga_init(void)
 }
 
 
-int cga_textcolor = 0x700;
+// int cga_textcolor = 0x700;
+extern int cga_textcolor;
 
 static void
 cga_putc(int c)
