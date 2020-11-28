@@ -84,24 +84,11 @@ trap_init(void)
 	extern void mchk_handler();
 	extern void simderr_handler();
 
-	SETGATE(idt[0], 0, GD_KT, divide_handler, 0);
-	SETGATE(idt[1], 0, GD_KT, debug_handler, 0);
-	SETGATE(idt[2], 0, GD_KT, nmi_handler, 0);
-	SETGATE(idt[3], 1, GD_KT, brkpt_handler, 0);
-	SETGATE(idt[4], 1, GD_KT, oflow_handler, 0);
-	SETGATE(idt[5], 0, GD_KT, bound_handler, 0);
-	SETGATE(idt[6], 0, GD_KT, illop_handler, 0);
-	SETGATE(idt[7], 0, GD_KT, device_handler, 0);
-	SETGATE(idt[8], 0, GD_KT, dblflt_handler, 0);
-	SETGATE(idt[10], 0, GD_KT, tss_handler, 0);
-	SETGATE(idt[11], 0, GD_KT, segnp_handler, 0);
-	SETGATE(idt[12], 0, GD_KT, stack_handler, 0);
-	SETGATE(idt[13], 0, GD_KT, gpflt_handler, 0);
-	SETGATE(idt[14], 0, GD_KT, pgflt_handler, 0);
-	SETGATE(idt[16], 0, GD_KT, fperr_handler, 0);
-	SETGATE(idt[17], 0, GD_KT, align_handler, 0);
-	SETGATE(idt[18], 0, GD_KT, mchk_handler, 0);
-	SETGATE(idt[19], 0, GD_KT, simderr_handler, 0);
+	extern uint32_t handlers[];
+	for (int i = 0; i < 20; i++) {
+		if (i == T_BRKPT) SETGATE(idt[i], 1, GD_KT, handlers[i], 3)
+		else SETGATE(idt[i], 1, GD_KT, handlers[i], 0)
+	}
 
 	// Per-CPU setup 
 	trap_init_percpu();
