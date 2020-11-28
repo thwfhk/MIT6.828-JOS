@@ -76,6 +76,7 @@ TRAPHANDLER(align_handler, T_ALIGN) /* 17 error code */
 TRAPHANDLER_NOEC(mchk_handler, T_MCHK)
 TRAPHANDLER_NOEC(simderr_handler, T_SIMDERR)
 
+TRAPHANDLER_NOEC(syscall_handler, T_SYSCALL)
 
 
 /*
