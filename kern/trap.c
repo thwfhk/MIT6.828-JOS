@@ -65,24 +65,6 @@ trap_init(void)
 	extern struct Segdesc gdt[];
 
 	// LAB 3: Your code here.
-	extern void divide_handler();
-	extern void debug_handler();
-	extern void nmi_handler();
-	extern void brkpt_handler();
-	extern void oflow_handler();
-	extern void bound_handler();
-	extern void illop_handler();
-	extern void device_handler();
-	extern void dblflt_handler();
-	extern void tss_handler();
-	extern void segnp_handler();
-	extern void stack_handler();
-	extern void gpflt_handler();
-	extern void pgflt_handler();
-	extern void fperr_handler();
-	extern void align_handler();
-	extern void mchk_handler();
-	extern void simderr_handler();
 	extern void syscall_handler();
 
 	extern uint32_t handlers[];
@@ -176,6 +158,12 @@ trap_dispatch(struct Trapframe *tf)
 	}
 	else if (tf->tf_trapno == T_BRKPT) {
 		monitor(tf);
+		return;
+	}
+	else if (tf->tf_trapno == T_SYSCALL) {
+		struct PushRegs *regs = &tf->tf_regs;
+		int32_t ret = syscall(regs->reg_eax, regs->reg_edx, regs->reg_ecx, regs->reg_ebx, regs->reg_edi, regs->reg_esi);
+		regs->reg_eax = ret;
 		return;
 	}
 
