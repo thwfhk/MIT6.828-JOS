@@ -619,7 +619,10 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+	size_t roundSize = ROUNDUP(size, PGSIZE);
+	if (base + roundSize > MMIOLIM) panic("mmio_map_region: MMIO space run out.");
+	boot_map_region(kern_pgdir, base, roundSize, pa, PTE_PCD | PTE_PWT | PTE_W);
+	base = base + roundSize;
 }
 
 static uintptr_t user_mem_check_addr;
