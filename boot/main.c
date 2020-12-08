@@ -41,7 +41,7 @@ bootmain(void)
 	struct Proghdr *ph, *eph;
 	int i;
 
-	// read 1st page off disk
+	// read 1st page off disk, 一个page是4kb(8*512 bytes)
 	readseg((uint32_t) ELFHDR, SECTSIZE*8, 0);
 
 	// is this a valid ELF?
@@ -114,6 +114,8 @@ readsect(void *dst, uint32_t offset)
 	// wait for disk to be ready
 	waitdisk();
 
+	// 0x1F3 - 0x1F5 是要访存的sector的LBA(即sector编号)
+	// 不太清楚0x1F6是干啥的，也是LBA一部分？为什么是0xE0?
 	outb(0x1F2, 1);		// count = 1
 	outb(0x1F3, offset);
 	outb(0x1F4, offset >> 8);
@@ -125,6 +127,6 @@ readsect(void *dst, uint32_t offset)
 	waitdisk();
 
 	// read a sector
-	insl(0x1F0, dst, SECTSIZE/4);
+	insl(0x1F0, dst, SECTSIZE/4); // l表示双字，4 bytes，所以/4
 }
 

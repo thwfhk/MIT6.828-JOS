@@ -72,6 +72,14 @@ trap_init(void)
 	extern struct Segdesc gdt[];
 
 	// LAB 3: Your code here.
+	extern void syscall_handler();
+
+	extern uint32_t handlers[];
+	for (int i = 0; i < 20; i++) {
+		if (i == T_BRKPT) SETGATE(idt[i], 1, GD_KT, handlers[i], 3)
+		else SETGATE(idt[i], 1, GD_KT, handlers[i], 0)
+	}
+	SETGATE(idt[T_SYSCALL], 1, GD_KT, syscall_handler, 3);
 
 	// Per-CPU setup 
 	trap_init_percpu();
@@ -176,6 +184,20 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+	if (tf->tf_trapno == T_PGFLT) {
+		page_fault_handler(tf);
+		return;
+	}
+	else if (tf->tf_trapno == T_BRKPT) {
+		monitor(tf);
+		return;
+	}
+	else if (tf->tf_trapno == T_SYSCALL) {
+		struct PushRegs *regs = &tf->tf_regs;
+		int32_t ret = syscall(regs->reg_eax, regs->reg_edx, regs->reg_ecx, regs->reg_ebx, regs->reg_edi, regs->reg_esi);
+		regs->reg_eax = ret;
+		return;
+	}
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -271,6 +293,8 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+	if ((tf->tf_cs & 3) != 3)
+		panic("[page_fault_handler] kernel mode page fault.");
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.

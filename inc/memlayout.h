@@ -97,7 +97,7 @@
 #define KSTKSIZE	(8*PGSIZE)   		// size of a kernel stack
 #define KSTKGAP		(8*PGSIZE)   		// size of a kernel stack guard
 
-// Memory-mapped IO.
+// Memory-mapped IO. 上下范围
 #define MMIOLIM		(KSTACKTOP - PTSIZE)
 #define MMIOBASE	(MMIOLIM - PTSIZE)
 
