@@ -336,6 +336,7 @@ page_init(void)
 	// 貌似pp_ref不需要设置，只要不加入page_free_list就行
 	// pages[0].pp_ref = 1; // (1)
 	for (i = 1; i < npages_basemem; i++) { // (2)
+		if (i * PGSIZE == MPENTRY_PADDR) continue;
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -622,7 +623,9 @@ mmio_map_region(physaddr_t pa, size_t size)
 	size_t roundSize = ROUNDUP(size, PGSIZE);
 	if (base + roundSize > MMIOLIM) panic("mmio_map_region: MMIO space run out.");
 	boot_map_region(kern_pgdir, base, roundSize, pa, PTE_PCD | PTE_PWT | PTE_W);
+	uintptr_t ret = base;
 	base = base + roundSize;
+	return (void *) ret;
 }
 
 static uintptr_t user_mem_check_addr;
