@@ -346,7 +346,7 @@ page_fault_handler(struct Trapframe *tf)
 		utf->utf_eflags = tf->tf_eflags;
 		utf->utf_esp = tf->tf_esp;
 
-		tf->tf_esp = addr; // cann't use tf
+		tf->tf_esp = addr;
 		tf->tf_eip = (uintptr_t) curenv->env_pgfault_upcall;
 		// cprintf("*************** utfesp: %x addr: %x\n", utf->utf_esp, addr);
 		env_run(curenv);
