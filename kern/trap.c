@@ -332,10 +332,10 @@ page_fault_handler(struct Trapframe *tf)
 
 	// LAB 4: Your code here.
 	if (curenv->env_pgfault_upcall) {
-		if (tf->tf_esp < UXSTACKTOP-PGSIZE || tf->tf_esp > UXSTACKTOP-1)
-			tf->tf_esp = UXSTACKTOP;
 		size_t size = sizeof(struct UTrapframe) + 4;
 		uint32_t addr = tf->tf_esp - size;
+		if (tf->tf_esp < UXSTACKTOP-PGSIZE || tf->tf_esp > UXSTACKTOP-1)
+			addr = UXSTACKTOP - size;
 		user_mem_assert(curenv, (void*)addr, size, PTE_W);
 
 		struct UTrapframe *utf = (struct UTrapframe *) addr;
@@ -346,8 +346,9 @@ page_fault_handler(struct Trapframe *tf)
 		utf->utf_eflags = tf->tf_eflags;
 		utf->utf_esp = tf->tf_esp;
 
-		curenv->env_tf.tf_esp = addr; // cann't use tf
-		curenv->env_tf.tf_eip = (uintptr_t) curenv->env_pgfault_upcall;
+		tf->tf_esp = addr; // cann't use tf
+		tf->tf_eip = (uintptr_t) curenv->env_pgfault_upcall;
+		// cprintf("*************** utfesp: %x addr: %x\n", utf->utf_esp, addr);
 		env_run(curenv);
 	}
 
