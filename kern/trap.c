@@ -73,13 +73,18 @@ trap_init(void)
 
 	// LAB 3: Your code here.
 	extern void syscall_handler();
-
 	extern uint32_t handlers[];
+	extern uint32_t irqhandlers[];
+
 	for (int i = 0; i < 20; i++) {
-		if (i == T_BRKPT) SETGATE(idt[i], 1, GD_KT, handlers[i], 3)
-		else SETGATE(idt[i], 1, GD_KT, handlers[i], 0)
+		if (i == T_BRKPT) SETGATE(idt[i], 0, GD_KT, handlers[i], 3)
+		else SETGATE(idt[i], 0, GD_KT, handlers[i], 0)
 	}
-	SETGATE(idt[T_SYSCALL], 1, GD_KT, syscall_handler, 3);
+	SETGATE(idt[T_SYSCALL], 0, GD_KT, syscall_handler, 3);
+	// NOTE: 需要都改成interrupt gate，因为要求kernel不能有interrupt
+	for (int i = 0; i < 16; i++) {
+		SETGATE(idt[IRQ_OFFSET + i], 0, GD_KT, irqhandlers[i], 0);
+	}
 
 	// Per-CPU setup 
 	trap_init_percpu();
