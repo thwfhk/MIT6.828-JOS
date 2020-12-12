@@ -141,6 +141,50 @@ fork(void)
 int
 sfork(void)
 {
-	panic("sfork not implemented");
-	return -E_INVAL;
+	int r;
+	set_pgfault_handler(pgfault);
+
+	envid_t envid = sys_exofork(), curenvid = sys_getenvid();
+	if (envid < 0) panic("fork error: sys_exofork failed");
+	if (envid == 0) { // child
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	}
+	else { // parent
+		// not UTOP, becasue UXSTACK should be copied
+		for (uint32_t i = 0; i < USTACKTOP - PGSIZE; i += PGSIZE) {
+			if ((uvpd[PDX(i)] & PTE_P) && (uvpt[PGNUM(i)] & PTE_P) && (uvpt[PGNUM(i)] & PTE_U)) {
+				pte_t pte = uvpt[PGNUM(i)];
+				if (pte & PTE_COW) { // we need to make it writable
+					r = sys_page_alloc(curenvid, (void*)PFTEMP, PTE_P | PTE_U | PTE_W);
+					if (r < 0) panic("sfork error: %e", r);
+					memcpy((void*)PFTEMP, (void*)i, PGSIZE);
+					r = sys_page_map(curenvid, (void*) PFTEMP, curenvid, (void*) i, PTE_P | PTE_U | PTE_W);
+					if (r < 0) panic("sfork error: %e", r);
+					r = sys_page_unmap(curenvid, (void*) PFTEMP);
+					if (r < 0) panic("sfork error: %e", r);
+				}
+				r = sys_page_map(curenvid, (void*) i, envid, (void*) i, PTE_P | PTE_U | PTE_W);
+				if (r < 0) panic("sfork error: %e", r);
+			}
+		}
+		// user stack
+		void *va = (void*)(USTACKTOP - PGSIZE);
+		r = sys_page_map(curenvid, va, envid, va, PTE_P | PTE_U | PTE_COW);
+		if (r < 0) panic("sfork error: %e", r);
+		r = sys_page_map(curenvid, va, curenvid, va, PTE_P | PTE_U | PTE_COW);
+		if (r < 0) panic("sfork error: %e", r);
+
+		// user exception stack
+		r = sys_page_alloc(envid, (void*)(UXSTACKTOP - PGSIZE), PTE_P | PTE_U | PTE_W);
+		if (r < 0) panic("fork error: sys_page_alloc failed");
+
+		extern void _pgfault_upcall();
+		sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
+
+		r = sys_env_set_status(envid, ENV_RUNNABLE);
+		if (r < 0) panic("fork error: sys_env_set_status failed");
+
+		return envid;
+	}
 }
