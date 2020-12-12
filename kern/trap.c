@@ -346,6 +346,7 @@ page_fault_handler(struct Trapframe *tf)
 		uint32_t addr = tf->tf_esp - size;
 		if (tf->tf_esp < UXSTACKTOP-PGSIZE || tf->tf_esp > UXSTACKTOP-1)
 			addr = UXSTACKTOP - size;
+		// cprintf("********************addr: %x\n", addr);
 		user_mem_assert(curenv, (void*)addr, size, PTE_W);
 
 		struct UTrapframe *utf = (struct UTrapframe *) addr;
