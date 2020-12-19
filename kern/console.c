@@ -5,6 +5,7 @@
 #include <inc/kbdreg.h>
 #include <inc/string.h>
 #include <inc/assert.h>
+#include <inc/stdio.h> // added by me
 
 #include <kern/console.h>
 #include <kern/trap.h>
@@ -163,13 +164,16 @@ cga_init(void)
 }
 
 
+// int cga_textcolor = 0x700;
+extern int cga_textcolor;
 
 static void
 cga_putc(int c)
 {
 	// if no attribute given, then use black on white
 	if (!(c & ~0xFF))
-		c |= 0x0700;
+		// c |= 0x0700;
+		c |= cga_textcolor;
 
 	switch (c & 0xff) {
 	case '\b':
