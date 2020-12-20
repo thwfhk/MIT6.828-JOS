@@ -97,6 +97,9 @@ CFLAGS += -fno-tree-ch
 # Add -fno-stack-protector if the option exists.
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 
+# Add -Wno-address-of-packed-member if the option exists
+CFLAGS += $(shell $(CC) -Wno-address-of-packed-member -E -x c /dev/null >/dev/null 2>&1 && echo -Wno-address-of-packed-member)
+
 # Common linker flags
 LDFLAGS := -m elf_i386
 
