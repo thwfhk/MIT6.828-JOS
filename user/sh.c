@@ -296,7 +296,9 @@ umain(int argc, char **argv)
 	if (interactive == '?')
 		interactive = iscons(0);
 
+	// char lastbuf[1024];
 	while (1) {
+				// cprintf("LASTBUFFFFFFFFFFFF %s\n", lastbuf);
 		char *buf;
 
 		buf = readline(interactive ? "$ " : NULL);
@@ -318,6 +320,15 @@ umain(int argc, char **argv)
 		if (debug)
 			cprintf("FORK: %d\n", r);
 		if (r == 0) {
+			// if (strcmp(buf, "redo") == 0) {
+			// 	cprintf("lastbuf %s\n", lastbuf);
+			// 	buf = lastbuf;
+			// }
+			// else {
+			// 	size_t len = strlen(buf);
+			// 	for (int i = 0; i < len; i++) lastbuf[i] = buf[i];
+			// 	cprintf("lastbuf %s\n", lastbuf);
+			// }
 			runcmd(buf);
 			exit();
 		} else
